@@ -79,8 +79,8 @@ AuditFlow is accessed through WhatsApp integration powered by n8n workflows. All
 Send text messages to the configured WhatsApp number with your audit queries:
 
 ```
-"Show me all transactions above $10,000 in the general ledger"
-"Summarize the trial balance for Q4 2024"
+"Show me all transactions above PKR 10,000 in the general ledger"
+"Summarize the trial balance for 2024"
 "Find all entries related to account 1200"
 ```
 
@@ -137,19 +137,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-## Support
-
-For questions or support, please open an issue on GitHub or contact the maintainers.
-
-## Roadmap
-
-- [ ] Multi-language support
-- [ ] Advanced analytics dashboard
-- [ ] Real-time collaboration features
-- [ ] Mobile application
-- [ ] Integration with major accounting software
-- [ ] Custom report generation
 
 ## Acknowledgments
 
