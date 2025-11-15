@@ -1,0 +1,566 @@
+{
+  "name": "AuditFlow Whatsapp",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query[\"hub.challenge\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -272,
+        -1360
+      ],
+      "id": "ea177de5-0bfc-4676-b707-3ef4c12b7e77",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.user }}",
+        "options": {
+          "systemMessage": "- You are a vector store data retrieval assistant. \n- If user greets, respond accordingly.\n- In case of information required, use tool node to get the required data from attached vector store and respond.  "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1008,
+        -768
+      ],
+      "id": "527a0946-fafb-4199-8673-35bc720c17b2",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        848,
+        -544
+      ],
+      "id": "7ebad226-d1bd-4398-b96a-003de159fcea",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "XKZiHIVm4n6iY9A6",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Respond to the queries by fetching relevant information. ",
+        "weaviateCollection": {
+          "__rl": true,
+          "value": "FinancialRow",
+          "mode": "list",
+          "cachedResultName": "FinancialRow"
+        },
+        "topK": 250,
+        "options": {
+          "metadataKeys": "gl_account, account_name, year, category"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreWeaviate",
+      "typeVersion": 1.3,
+      "position": [
+        1104,
+        -544
+      ],
+      "id": "cce58ba3-e021-4f32-86c3-38353ed3490d",
+      "name": "Weaviate Vector Store",
+      "credentials": {
+        "weaviateApi": {
+          "id": "uZbJUy5xEgUTWo5M",
+          "name": "Weaviate Credentials account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "embed-english-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        -336
+      ],
+      "id": "af5b3524-f831-4458-87c9-398001e0b88e",
+      "name": "Embeddings Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "5hpAB8Hlcj30uEht",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895655563623140",
+        "recipientPhoneNumber": "+923338409222",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1600,
+        -768
+      ],
+      "id": "6bac1313-f507-4acd-9b33-414f69a27354",
+      "name": "Send message",
+      "webhookId": "6ff94b75-b858-4069-beeb-7626d6fdb5bd",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "l9e1FgCXBxNdayir",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.entry[0].changes[0].value.messages[0].type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "fdbc0824-4f96-4ada-858e-889b310886c9"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0bf0e2be-ced7-475a-8af9-ab7b67568792",
+                    "leftValue": "={{ $json.body.entry[0].changes[0].value.messages[0].type }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5f7c0eb4-013a-4ed2-a001-da3475cdceb0",
+                    "leftValue": "={{ $json.body.entry[0].changes[0].value.statuses }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "array",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -272,
+        -784
+      ],
+      "id": "ca36b8d7-d71b-4df4-a7d9-da44c6739a2d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $json.body.entry[0].changes[0].value.messages[0].audio.id }}"
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        -672
+      ],
+      "id": "fc1b38a7-3ecc-4f58-b8b9-1f3f173f68f5",
+      "name": "Download media",
+      "webhookId": "2f4d9f8b-857d-4cec-a90c-acd19f200018",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "l9e1FgCXBxNdayir",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        176,
+        -672
+      ],
+      "id": "dc0b0475-bb49-4caa-afd2-7df5e97d8f31",
+      "name": "Get Voice Note",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "l9e1FgCXBxNdayir",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:5000/transcribe",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        400,
+        -672
+      ],
+      "id": "4c5aace5-b34d-4bfe-924d-5df9c432eb94",
+      "name": "Transcribe Audio"
+    },
+    {
+      "parameters": {
+        "path": "whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -496,
+        -1360
+      ],
+      "id": "f92bc024-df55-47d6-8a8a-3ef38ce53f67",
+      "name": "Webhook",
+      "webhookId": "112ea14c-202e-4572-a1ff-a9bb7217f9d1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -496,
+        -768
+      ],
+      "id": "62bca3d7-e4a3-4a42-9291-26a4602dc9a9",
+      "name": "Query Received",
+      "webhookId": "112ea14c-202e-4572-a1ff-a9bb7217f9d1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d19f9a35-ef14-4d67-87e4-c6ca84e4d610",
+              "name": "user",
+              "value": "={{ $json.body.entry[0].changes[0].value.messages[0].text.body }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        -864
+      ],
+      "id": "e6e86ce6-544e-4c68-8222-94a6849667a0",
+      "name": "Agent Input Text"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c8e1d155-93a3-4604-b988-c75726909a03",
+              "name": "user",
+              "value": "={{ $json.transcription }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        -672
+      ],
+      "id": "6905490d-df44-4549-9173-a346496eae44",
+      "name": "Agent Input Text1"
+    },
+    {
+      "parameters": {
+        "content": "- # Querying Weaviate Vector Store via RAG Retriever and Agent through WhatsApp Text & Voice\n- # Querying Supabase Relational Tables via MCP Tools through WhatsApp Text & Voice\n",
+        "height": 128,
+        "width": 1760
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -256,
+        -1072
+      ],
+      "typeVersion": 1,
+      "id": "305c13cf-90a8-4c81-a7fc-9ea3c87bb5a2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://127.0.0.1:8000/mcp",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        1392,
+        -544
+      ],
+      "id": "9806b522-8f14-4e73-9e24-d072fd6abeed",
+      "name": "MCP Client"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weaviate Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Cohere": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Weaviate Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Agent Input Text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download media",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Download media": {
+      "main": [
+        [
+          {
+            "node": "Get Voice Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Voice Note": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe Audio": {
+      "main": [
+        [
+          {
+            "node": "Agent Input Text1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Received": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Input Text": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Input Text1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Karachi",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "836757f0-f187-42b0-b442-1199443345eb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5492dca95c33b5bbea86606a194d08e1623386c66145600a61da880cb6498f13"
+  },
+  "id": "LvPclR1aML75FDQM",
+  "tags": [
+    {
+      "updatedAt": "2025-11-03T06:53:39.396Z",
+      "createdAt": "2025-11-03T06:53:39.396Z",
+      "id": "rsD3DaPdCiIedKcf",
+      "name": "Personal"
+    }
+  ]
+}

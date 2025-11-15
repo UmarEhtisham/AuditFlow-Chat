@@ -1,0 +1,1449 @@
+{
+  "name": "AuditFlow Data Ingestion",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Data Ingestion ",
+        "formDescription": "Please enter you data",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "trial_balance_current_year",
+              "fieldType": "file",
+              "acceptFileTypes": ".xlsx, .xls",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "trial_balance_previous_year",
+              "fieldType": "file",
+              "acceptFileTypes": ".xlsx, .xls",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "general_ledger_current_year",
+              "fieldType": "file",
+              "acceptFileTypes": ".xlsx, .xls",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "general_ledger_previous_year",
+              "fieldType": "file",
+              "acceptFileTypes": ".xlsx, .xls",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -752,
+        1136
+      ],
+      "id": "4337b04b-daab-48f0-bedd-f43984a84b90",
+      "name": "On form submission",
+      "webhookId": "2be1786a-381b-466d-9c62-b59487224b87"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.trial_balance_current_year[0].filename.toLowerCase().endsWith('.xlsx') || $json.trial_balance_current_year[0].filename.toLowerCase().endsWith('.xls')  }}\n\n\n",
+                    "rightValue": "=xlsx\n",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "a0802ee6-440b-448b-8c0b-6c26c20bad00"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -384,
+        800
+      ],
+      "id": "da9bd4c5-cefd-42f7-b65d-a26c829eab1f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "trial_balance_current_year",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        800
+      ],
+      "id": "3884e161-0272-45f8-8416-204ed8dfe2f9",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e3b5e9a9-8cab-4a3d-aefb-a40232f123fe",
+              "name": "GL Account",
+              "value": "={{ $json['GL Account'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2c89e8b7-a74c-4859-8089-925618fedc42",
+              "name": "Account Name",
+              "value": "={{ $json['Account Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "34abcde8-b221-434a-91a9-78d56b96ffd1",
+              "name": "Debit",
+              "value": "={{ $json.Debit.toFixed(2) }}",
+              "type": "number"
+            },
+            {
+              "id": "89dba732-2d38-4a32-8af7-6ab566b9c8be",
+              "name": "Credit",
+              "value": "={{ $json.Credit.toFixed(2) }}",
+              "type": "number"
+            },
+            {
+              "id": "7affbe0a-7b76-4faa-bfca-c5963e014587",
+              "name": "Balance",
+              "value": "={{ $json.Balance.toFixed(2) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        800
+      ],
+      "id": "12dca08b-f0d2-4815-b4f9-6699f7e7e6e9",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE trial_balance_current_year (\n    gl_account     VARCHAR(50) PRIMARY KEY,\n    account_name   VARCHAR(255),\n    debit          NUMERIC(18,2),\n    credit         NUMERIC(18,2),\n    balance        NUMERIC(18,2)\n);\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        208,
+        464
+      ],
+      "id": "5df802f5-3524-49c0-a8ce-03c9732b42ac",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "PdDtoqHoc9NoRRcS",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE trial_balance_previous_year (\n    gl_account     VARCHAR(50) PRIMARY KEY,\n    account_name   VARCHAR(255),\n    debit          NUMERIC(18,2),\n    credit         NUMERIC(18,2),\n    balance        NUMERIC(18,2)\n);\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        432,
+        464
+      ],
+      "id": "c569e899-c39a-42bb-8f17-a0e24788396c",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "PdDtoqHoc9NoRRcS",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "results = []\n\nfor item in _input.all():\n    row = item.json\n\n    # Lowercase, trimmed values\n    gl_account = str(row.get(\"GL Account\", \"\")).strip().lower()\n    account_name = str(row.get(\"Account Name\", \"\")).strip().lower()\n    debit = float(row.get(\"Debit\", 0) or 0)\n    credit = float(row.get(\"Credit\", 0) or 0)\n    balance = float(row.get(\"Balance\", 0) or 0)\n\n    # Metadata (used for exact filters)\n    metadata = {\n        \"gl_account\": gl_account,\n        \"account_name\": account_name,\n        \"year\": \"2025\",\n        \"category\": \"trial balance\"\n    }\n\n    # Semantic text (used for embeddings)\n    row_text = (\n        f\"gl_account: {gl_account}, debit: {debit}, credit: {credit}, \"\n        f\"balance: {balance}, year: {metadata['year']}, category: {metadata['category']}\"\n    )\n\n    # Final JSON object\n    results.append({\n        \"json\": {\n            \"metadata\": metadata,\n            \"pageContent\": row_text\n        }\n    })\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        800
+      ],
+      "id": "1368dda2-0f6c-45d3-851e-29e52e35dfba",
+      "name": "Code in Python (Beta)"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "trial_balance_current_year",
+          "mode": "list",
+          "cachedResultName": "trial_balance_current_year"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "gl_account": "={{ $json.gl_account }}",
+            "account_name": "={{ $json.account_name }}",
+            "debit": "={{ $json.debit }}",
+            "credit": "={{ $json.credit }}",
+            "balance": "={{ $json.balance }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "gl_account",
+              "displayName": "gl_account",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "account_name",
+              "displayName": "account_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "debit",
+              "displayName": "debit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "credit",
+              "displayName": "credit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "balance",
+              "displayName": "balance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        512,
+        1280
+      ],
+      "id": "b2ef9c3e-53bd-4694-9c84-0070e6190414",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "PdDtoqHoc9NoRRcS",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.trial_balance_previous_year[0].filename.toLowerCase().endsWith('.xlsx') || $json.trial_balance_previous_year[0].filename.toLowerCase().endsWith('.xls')  }}\n\n\n",
+                    "rightValue": "=xlsx\n",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "a0802ee6-440b-448b-8c0b-6c26c20bad00"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -384,
+        1088
+      ],
+      "id": "da755aae-06bf-48cb-bf7d-bed7b07f316b",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "trial_balance_previous_year",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        1088
+      ],
+      "id": "4411fca6-ecd9-401b-b1d1-12657694b001",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e3b5e9a9-8cab-4a3d-aefb-a40232f123fe",
+              "name": "GL Account",
+              "value": "={{ $json['GL Account'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2c89e8b7-a74c-4859-8089-925618fedc42",
+              "name": "Account Name",
+              "value": "={{ $json['Account Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "34abcde8-b221-434a-91a9-78d56b96ffd1",
+              "name": "Debit",
+              "value": "={{ $json.Debit.toFixed(2) }}",
+              "type": "number"
+            },
+            {
+              "id": "89dba732-2d38-4a32-8af7-6ab566b9c8be",
+              "name": "Credit",
+              "value": "={{ $json.Credit.toFixed(2) }}",
+              "type": "number"
+            },
+            {
+              "id": "7affbe0a-7b76-4faa-bfca-c5963e014587",
+              "name": "Balance",
+              "value": "={{ $json.Balance.toFixed(2) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        1088
+      ],
+      "id": "a4aa5df4-ea50-45ef-a840-07efac82e811",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "results = []\n\nfor item in _input.all():\n    row = item.json\n\n    # Lowercase, trimmed values\n    gl_account = str(row.get(\"GL Account\", \"\")).strip().lower()\n    account_name = str(row.get(\"Account Name\", \"\")).strip().lower()\n    debit = float(row.get(\"Debit\", 0) or 0)\n    credit = float(row.get(\"Credit\", 0) or 0)\n    balance = float(row.get(\"Balance\", 0) or 0)\n\n    # Metadata (used for exact filters)\n    metadata = {\n        \"gl_account\": gl_account,\n        \"account_name\": account_name,\n        \"year\": \"2024\",\n        \"category\": \"trial balance\"\n    }\n\n    # Semantic text (used for embeddings)\n    row_text = (\n        f\"gl_account: {gl_account}, debit: {debit}, credit: {credit}, \"\n        f\"balance: {balance}, year: {metadata['year']}, category: {metadata['category']}\"\n    )\n\n    # Final JSON object\n    results.append({\n        \"json\": {\n            \"metadata\": metadata,\n            \"pageContent\": row_text\n        }\n    })\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        1088
+      ],
+      "id": "ef1e4490-f5e6-404c-8ae1-db4f928eb743",
+      "name": "Code in Python (Beta)1"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "trial_balance_previous_year",
+          "mode": "list",
+          "cachedResultName": "trial_balance_previous_year"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "gl_account": "={{ $json.gl_account }}",
+            "account_name": "={{ $json.account_name }}",
+            "debit": "={{ $json.debit }}",
+            "credit": "={{ $json.credit }}",
+            "balance": "={{ $json.balance }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "gl_account",
+              "displayName": "gl_account",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "account_name",
+              "displayName": "account_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "debit",
+              "displayName": "debit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "credit",
+              "displayName": "credit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "balance",
+              "displayName": "balance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        512,
+        800
+      ],
+      "id": "ea1970ab-0d39-4b44-b0dd-b395507672d5",
+      "name": "Insert rows in a table1",
+      "credentials": {
+        "postgres": {
+          "id": "PdDtoqHoc9NoRRcS",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        512,
+        992
+      ],
+      "id": "96591f5a-b452-40a5-8050-a7856b8e5dd6",
+      "name": "Merge"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        672,
+        1168
+      ],
+      "id": "c7def196-1054-4661-943f-a6526b8cfe5b",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        736,
+        800
+      ],
+      "id": "1f240bfa-1e0d-4c10-b8d8-95ab58e4ee18",
+      "name": "No Operation, do nothing2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.general_ledger_current_year[0].filename.toLowerCase().endsWith('.xlsx') || $json.general_ledger_current_year[0].filename.toLowerCase().endsWith('.xls')  }}\n\n\n",
+                    "rightValue": "=xlsx\n",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "a0802ee6-440b-448b-8c0b-6c26c20bad00"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -384,
+        1280
+      ],
+      "id": "2b6289d3-c169-434f-9b49-0f8b50b9ba15",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.general_ledger_previous_year[0].filename.toLowerCase().endsWith('.xlsx') || $json.general_ledger_previous_year[0].filename.toLowerCase().endsWith('.xls')  }}\n\n\n",
+                    "rightValue": "=xlsx\n",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "a0802ee6-440b-448b-8c0b-6c26c20bad00"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -384,
+        1568
+      ],
+      "id": "49fbc850-82cc-44d0-a605-2a235396cab2",
+      "name": "Switch3"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "general_ledger_current_year",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        1280
+      ],
+      "id": "b8077900-58fe-4227-8e39-bdffd59dad34",
+      "name": "Extract from File2"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "general_ledger_previous_year",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        1568
+      ],
+      "id": "27d56084-a879-4595-827a-24eaa5b32c69",
+      "name": "Extract from File3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a9797cfa-849c-41c6-88a5-e2722d44dc22",
+              "name": "Date",
+              "value": "={{ $json.Date }}",
+              "type": "string"
+            },
+            {
+              "id": "f82e5600-9aca-4e00-b1bb-c7af4175ca12",
+              "name": "GL Account",
+              "value": "={{ $json['GL Account'] }}",
+              "type": "string"
+            },
+            {
+              "id": "72bb12d4-0709-49fc-b007-0e12636edd2f",
+              "name": "Account Name",
+              "value": "={{ $json['Account Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2cd6fafd-0a37-4336-8dc8-bb1941fe85fe",
+              "name": "Description",
+              "value": "={{ $json.Description }}",
+              "type": "string"
+            },
+            {
+              "id": "0ebf05be-b8ba-4e14-8272-32484a031d79",
+              "name": "Debit",
+              "value": "={{ $json.Debit }}",
+              "type": "number"
+            },
+            {
+              "id": "2e45c110-c257-423e-9a49-a54f8901b009",
+              "name": "Credit",
+              "value": "={{ $json.Credit }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        1280
+      ],
+      "id": "cbaeadb9-5de7-4fc3-9206-ec22a50900f9",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a9797cfa-849c-41c6-88a5-e2722d44dc22",
+              "name": "Date",
+              "value": "={{ $json.Date }}",
+              "type": "string"
+            },
+            {
+              "id": "f82e5600-9aca-4e00-b1bb-c7af4175ca12",
+              "name": "GL Account",
+              "value": "={{ $json['GL Account'] }}",
+              "type": "string"
+            },
+            {
+              "id": "72bb12d4-0709-49fc-b007-0e12636edd2f",
+              "name": "Account Name",
+              "value": "={{ $json['Account Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2cd6fafd-0a37-4336-8dc8-bb1941fe85fe",
+              "name": "Description",
+              "value": "={{ $json.Description }}",
+              "type": "string"
+            },
+            {
+              "id": "0ebf05be-b8ba-4e14-8272-32484a031d79",
+              "name": "Debit",
+              "value": "={{ $json.Debit }}",
+              "type": "number"
+            },
+            {
+              "id": "2e45c110-c257-423e-9a49-a54f8901b009",
+              "name": "Credit",
+              "value": "={{ $json.Credit }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        1568
+      ],
+      "id": "ca8d7ac3-6aeb-432e-a8c1-4a736737d5a2",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "import datetime\n\nresults = []\n\nfor item in _input.all():\n    row = item.json\n    date_value = row.get(\"Date\", \"\")\n\n    # Convert Excel serial or parse string → YYYY-MM-DDT00:00:00Z\n    try:\n        num = float(date_value)\n        date_iso = (datetime.datetime(1899, 12, 30) + datetime.timedelta(days=num)).strftime(\"%Y-%m-%dT00:00:00Z\")\n    except Exception:\n        try:\n            dt = datetime.datetime.fromisoformat(str(date_value))\n            date_iso = dt.strftime(\"%Y-%m-%dT00:00:00Z\")\n        except Exception:\n            date_iso = None\n\n    metadata = {\n        \"date\": date_iso,\n        \"gl_account\": str(row.get(\"GL Account\",\"\")).strip().lower(),\n        \"account_name\": str(row.get(\"Account Name\",\"\")).strip().lower(),\n        \"year\": \"2025\",\n        \"category\": \"general ledger\"\n    }\n\n    page_content = (\n        f\"gl_account: {metadata['gl_account']}, account_name: {metadata['account_name']}, \"\n        f\"description: {str(row.get('Description','')).strip().lower()}, \"\n        f\"debit: {float(row.get('Debit',0) or 0)}, credit: {float(row.get('Credit',0) or 0)}\"\n    )\n\n    results.append({\"json\": {\"pageContent\": page_content, \"metadata\": metadata}})\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        1280
+      ],
+      "id": "311fd75a-6f0b-40bb-8fb7-cec043388484",
+      "name": "Code in Python (Beta)2"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "import datetime\n\nresults = []\n\nfor item in _input.all():\n    row = item.json\n    date_value = row.get(\"Date\", \"\")\n\n    # Convert Excel serial or parse string → YYYY-MM-DDT00:00:00Z\n    try:\n        num = float(date_value)\n        date_iso = (datetime.datetime(1899, 12, 30) + datetime.timedelta(days=num)).strftime(\"%Y-%m-%dT00:00:00Z\")\n    except Exception:\n        try:\n            dt = datetime.datetime.fromisoformat(str(date_value))\n            date_iso = dt.strftime(\"%Y-%m-%dT00:00:00Z\")\n        except Exception:\n            date_iso = None\n\n    metadata = {\n        \"date\": date_iso,\n        \"gl_account\": str(row.get(\"GL Account\",\"\")).strip().lower(),\n        \"account_name\": str(row.get(\"Account Name\",\"\")).strip().lower(),\n        \"year\": \"2024\",\n        \"category\": \"general ledger\"\n    }\n\n    page_content = (\n        f\"gl_account: {metadata['gl_account']}, account_name: {metadata['account_name']}, \"\n        f\"description: {str(row.get('Description','')).strip().lower()}, \"\n        f\"debit: {float(row.get('Debit',0) or 0)}, credit: {float(row.get('Credit',0) or 0)}\"\n    )\n\n    results.append({\"json\": {\"pageContent\": page_content, \"metadata\": metadata}})\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        1568
+      ],
+      "id": "8d2ab0fe-bdfd-47a6-a129-0d7121f9be38",
+      "name": "Code in Python (Beta)3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        512,
+        1472
+      ],
+      "id": "3c658309-4c38-43d2-89e8-c2bb4766b408",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "weaviateCollection": {
+          "__rl": true,
+          "value": "FinancialRow",
+          "mode": "list",
+          "cachedResultName": "FinancialRow"
+        },
+        "embeddingBatchSize": 100,
+        "options": {
+          "skip_init_checks": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreWeaviate",
+      "typeVersion": 1.3,
+      "position": [
+        1168,
+        1152
+      ],
+      "id": "b0fff77b-c6c4-429b-b4cc-d27ba20e4c46",
+      "name": "Weaviate Vector Store",
+      "credentials": {
+        "weaviateApi": {
+          "id": "uZbJUy5xEgUTWo5M",
+          "name": "Weaviate Credentials account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        1152
+      ],
+      "id": "508a2972-f83e-4ad1-b172-8bfa7033174b",
+      "name": "No Operation, do nothing3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        464
+      ],
+      "id": "abad2a61-8244-44c8-b5b8-358aabec8a14",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ml5ydglkruom6umhg27uog.c0.asia-southeast1.gcp.weaviate.cloud/v1/schema",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"class\": \"FinData\",\n  \"vectorizer\": \"text2vec-cohere\",\n  \"moduleConfig\": {\n    \"text2vec-cohere\": {\n      \"model\": \"embed-english-v3.0\",\n      \"vectorizeClassName\": false\n    }\n  },\n  \"invertedIndexConfig\": {\n    \"bm25\": {\n      \"b\": 0.75,\n      \"k1\": 1.2\n    }\n  },\n  \"properties\": [\n    {\n      \"name\": \"pageContent\",\n      \"dataType\": [\"text\"],\n      \"moduleConfig\": {\n        \"text2vec-cohere\": { \"skip\": false }\n      },\n      \"indexSearchable\": false\n    },\n    {\n      \"name\": \"metadata\",\n      \"dataType\": [\"object\"],\n      \"moduleConfig\": {\n        \"text2vec-cohere\": { \"skip\": true }\n      },\n      \"nestedProperties\": [\n        {\n          \"name\": \"account_name\",\n          \"dataType\": [\"text\"],\n          \"indexSearchable\": true,\n          \"indexFilterable\": true,\n          \"tokenization\": \"word\"\n        },\n        {\n          \"name\": \"gl_account\",\n          \"dataType\": [\"text\"],\n          \"indexFilterable\": true\n        },\n        {\n          \"name\": \"year\",\n          \"dataType\": [\"text\"],\n          \"indexFilterable\": true\n        },\n        {\n          \"name\": \"category\",\n          \"dataType\": [\"text\"],\n          \"indexFilterable\": true\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        400,
+        144
+      ],
+      "id": "52528e32-2ac6-40ad-8fbc-54160b8adf6d",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "NWkkfxo8NXV8yerZ",
+          "name": "Weaviate Post"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "embed-english-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        1376
+      ],
+      "id": "0aa3ccfc-bbfc-4a8e-ac43-8e881736c70c",
+      "name": "Embeddings Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "5hpAB8Hlcj30uEht",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.pageContent }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "gl_account",
+                "value": "={{ $json.metadata.gl_account }}"
+              },
+              {
+                "name": "account_name",
+                "value": "={{ $json.metadata.account_name }}"
+              },
+              {
+                "name": "year",
+                "value": "={{ $json.metadata.year }}"
+              },
+              {
+                "name": "category",
+                "value": "={{ $json.metadata.category }}"
+              },
+              {
+                "name": "date",
+                "value": "={{ $json.metadata.date }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1344,
+        1376
+      ],
+      "id": "4b49eeb9-51c7-448a-a12e-60a1660463f0",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ml5ydglkruom6umhg27uog.c0.asia-southeast1.gcp.weaviate.cloud/v1/schema",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"class\": \"FinancialRow\",\n  \"vectorizer\": \"text2vec-cohere\",\n  \"moduleConfig\": {\n    \"text2vec-cohere\": {\n      \"model\": \"embed-english-v3.0\",\n      \"vectorizeClassName\": false\n    }\n  },\n  \"invertedIndexConfig\": {\n    \"bm25\": {\n      \"b\": 0.75,\n      \"k1\": 1.2\n    }\n  },\n  \"properties\": [\n    {\n      \"name\": \"text\",\n      \"dataType\": [\"text\"],\n      \"description\": \"Full transaction text for embeddings\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": false\n        }\n      },\n      \"indexSearchable\": false\n    },\n    {\n      \"name\": \"gl_account\",\n      \"dataType\": [\"text\"],\n      \"description\": \"General ledger account number\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexFilterable\": true\n    },\n    {\n      \"name\": \"account_name\",\n      \"dataType\": [\"text\"],\n      \"description\": \"Account name for BM25 search\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexSearchable\": true,\n      \"indexFilterable\": true,\n      \"tokenization\": \"word\"\n    },\n    {\n      \"name\": \"description\",\n      \"dataType\": [\"text\"],\n      \"description\": \"Transaction description (used in general ledger only)\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexFilterable\": true\n    },\n    {\n      \"name\": \"balance\",\n      \"dataType\": [\"number\"],\n      \"description\": \"Balance amount (used in trial balance only)\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexFilterable\": true\n    },\n    {\n      \"name\": \"year\",\n      \"dataType\": [\"text\"],\n      \"description\": \"Financial year\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexFilterable\": true\n    },\n    {\n      \"name\": \"category\",\n      \"dataType\": [\"text\"],\n      \"description\": \"Account category (trial balance or general ledger)\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexFilterable\": true\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        112,
+        144
+      ],
+      "id": "da8dd9dd-ee29-444d-a967-85f8b1b41fad",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "NWkkfxo8NXV8yerZ",
+          "name": "Weaviate Post"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ml5ydglkruom6umhg27uog.c0.asia-southeast1.gcp.weaviate.cloud/v1/schema",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"class\": \"FinancialRow\",\n  \"vectorizer\": \"text2vec-cohere\",\n  \"moduleConfig\": {\n    \"text2vec-cohere\": {\n      \"model\": \"embed-english-v3.0\",\n      \"vectorizeClassName\": false\n    }\n  },\n  \"invertedIndexConfig\": {\n    \"bm25\": {\n      \"b\": 0.75,\n      \"k1\": 1.2\n    }\n  },\n  \"properties\": [\n    {\n      \"name\": \"text\",\n      \"dataType\": [\"text\"],\n      \"description\": \"Full transaction text for embeddings\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": false\n        }\n      },\n      \"indexSearchable\": false\n    },\n    {\n      \"name\": \"gl_account\",\n      \"dataType\": [\"text\"],\n      \"description\": \"General ledger account number\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexFilterable\": true\n    },\n    {\n      \"name\": \"account_name\",\n      \"dataType\": [\"text\"],\n      \"description\": \"Account name for BM25 search\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexSearchable\": true,\n      \"indexFilterable\": true,\n      \"tokenization\": \"word\"\n    },\n    {\n      \"name\": \"year\",\n      \"dataType\": [\"text\"],\n      \"description\": \"Financial year\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexFilterable\": true\n    },\n    {\n      \"name\": \"category\",\n      \"dataType\": [\"text\"],\n      \"description\": \"Account category\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexFilterable\": true\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -160,
+        144
+      ],
+      "id": "91946008-1658-4c87-b114-317e199044aa",
+      "name": "HTTP Request2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "NWkkfxo8NXV8yerZ",
+          "name": "Weaviate Post"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        944,
+        1152
+      ],
+      "id": "b3b0fdb8-8b35-40c2-b2de-c6f198d68008",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ml5ydglkruom6umhg27uog.c0.asia-southeast1.gcp.weaviate.cloud/v1/schema",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"class\": \"FinancialRow\",\n  \"vectorizer\": \"text2vec-cohere\",\n  \"moduleConfig\": {\n    \"text2vec-cohere\": {\n      \"model\": \"embed-english-v3.0\",\n      \"vectorizeClassName\": false\n    }\n  },\n  \"invertedIndexConfig\": {\n    \"bm25\": {\n      \"b\": 0.75,\n      \"k1\": 1.2\n    },\n    \"indexNullState\": true\n  },\n  \"properties\": [\n    {\n      \"name\": \"pageContent\",\n      \"dataType\": [\"text\"],\n      \"description\": \"Full transaction text for embeddings\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": false\n        }\n      },\n      \"indexSearchable\": false\n    },\n    {\n      \"name\": \"gl_account\",\n      \"dataType\": [\"text\"],\n      \"description\": \"General ledger account number\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexFilterable\": true\n    },\n    {\n      \"name\": \"account_name\",\n      \"dataType\": [\"text\"],\n      \"description\": \"Account name for BM25 search\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexSearchable\": true,\n      \"indexFilterable\": true,\n      \"tokenization\": \"word\"\n    },\n    {\n      \"name\": \"year\",\n      \"dataType\": [\"text\"],\n      \"description\": \"Financial year\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexFilterable\": true\n    },\n    {\n      \"name\": \"category\",\n      \"dataType\": [\"text\"],\n      \"description\": \"Account category\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexFilterable\": true\n    },\n    {\n      \"name\": \"date\",\n      \"dataType\": [\"date\"],\n      \"description\": \"Transaction date\",\n      \"moduleConfig\": {\n        \"text2vec-cohere\": {\n          \"skip\": true\n        }\n      },\n      \"indexFilterable\": true,\n      \"indexRangeFilters\": true\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        656,
+        464
+      ],
+      "id": "d31e0aea-9214-484e-ac0d-e434c9400c17",
+      "name": "Collection Create",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "NWkkfxo8NXV8yerZ",
+          "name": "Weaviate Post"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "https://ml5ydglkruom6umhg27uog.c0.asia-southeast1.gcp.weaviate.cloud/v1/batch/objects",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"match\": {\n    \"class\": \"FinancialRow\",\n    \"where\": {\n      \"operator\": \"Like\",\n      \"path\": [\"category\"],\n      \"valueText\": \"*\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        688,
+        144
+      ],
+      "id": "cf7cd005-5815-4e08-b82c-eb6c6dfebd23",
+      "name": "Properties Data Delete",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "NWkkfxo8NXV8yerZ",
+          "name": "Weaviate Post"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# **AuditFlow** - FINANCIAL/TABULAR DATA INGESTION - RAG PIPELINE",
+        "height": 80,
+        "width": 1904
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -432,
+        672
+      ],
+      "typeVersion": 1,
+      "id": "4ebb5e30-b1e8-4f8c-a202-dfc91d251ed8",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "# Relational Tables & Vector Store Creation",
+        "height": 80,
+        "width": 880
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -64,
+        336
+      ],
+      "typeVersion": 1,
+      "id": "e7090dbf-6eab-4d56-a7de-27254395a78a",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Collection Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Insert rows in a table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table1": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch3": {
+      "main": [
+        [
+          {
+            "node": "Extract from File3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "Extract from File2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Insert rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)3": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weaviate Vector Store": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Cohere": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Weaviate Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Weaviate Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        []
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Weaviate Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collection Create": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0e1f5cfe-3945-4a62-8bd1-1ffa51451b3e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5492dca95c33b5bbea86606a194d08e1623386c66145600a61da880cb6498f13"
+  },
+  "id": "dNOjbIEXNHhh0Gp2",
+  "tags": [
+    {
+      "updatedAt": "2025-11-03T06:53:31.351Z",
+      "createdAt": "2025-11-03T06:53:31.351Z",
+      "id": "cx8t1WhxwxFDgTPo",
+      "name": "Professional"
+    }
+  ]
+}
